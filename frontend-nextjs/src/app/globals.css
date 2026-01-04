@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FF4D6D;
+  --color-primary-light: #FFB3C1;
+  --color-primary-dark: #C9184A;
+  --color-accent: #590D22;
+  --color-cream: #FFF5F7;
+  --color-dark: #1F1114;
+  
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+:root {
+  --background: #FFF5F7;
+  --foreground: #1F1114;
+  --card: #FFFFFF;
+  --card-foreground: #1F1114;
+  --popover: #FFFFFF;
+  --popover-foreground: #1F1114;
+  --primary: #FF4D6D;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FFB3C1;
+  --secondary-foreground: #1F1114;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748b;
+  --accent: #FF4D6D;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #F8FAFC;
+  --border: #f1f5f9;
+  --input: #f1f5f9;
+  --ring: #FF4D6D;
+  --radius: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1F1114;
+    --foreground: #FFF5F7;
+    --card: #2D1B1E;
+    --card-foreground: #FFF5F7;
+    --popover: #2D1B1E;
+    --popover-foreground: #FFF5F7;
+    --primary: #FF4D6D;
+    --primary-foreground: #FFFFFF;
+    --secondary: #590D22;
+    --secondary-foreground: #FFF5F7;
+    --muted: #3D2B2E;
+    --muted-foreground: #94a3b8;
+    --accent: #FF4D6D;
+    --accent-foreground: #FFFFFF;
+    --destructive: #7f1d1d;
+    --destructive-foreground: #F8FAFC;
+    --border: #3D2B2E;
+    --input: #3D2B2E;
+    --ring: #FF4D6D;
+  }
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(31, 17, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+

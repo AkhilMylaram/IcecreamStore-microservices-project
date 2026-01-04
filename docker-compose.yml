@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # Databases
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: icecream_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: payment_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  # Core Services
+  api-gateway:
+    build: ./api-gateway-dotnet
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - user-service
+      - product-service
+
+  auth-service:
+    build: ./auth-service-java
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/icecream_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+
+  user-service:
+    build: ./user-service-java
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/icecream_db
+
+  product-service:
+    build: ./product-service-python
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+
+  order-service:
+    build: ./order-service-java
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/icecream_db
+
+  payment-service:
+    build: ./payment-service-dotnet
+    ports:
+      - "8084:8083"
+    depends_on:
+      - mysql
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=mysql;Database=payment_db;User=root;Password=password;"
+
+  inventory-service:
+    build: ./inventory-service-java
+    ports:
+      - "8085:8084"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/inventory_db
+
+  notification-service:
+    build: ./notification-service-python
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mongodb
+
+  admin-service:
+    build: ./admin-service-dotnet
+    ports:
+      - "8086:8085"
+    depends_on:
+      - mysql
+
+  # Frontend
+  frontend:
+    build: ./frontend-nextjs
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://api-gateway:8080/api
+
+volumes:
+  postgres_data:
+  mysql_data:
+  mongodb_data:
