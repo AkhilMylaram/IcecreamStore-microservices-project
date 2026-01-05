@@ -19,7 +19,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
 export const authApi = {
     login: (credentials: any) => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
-    signup: (data: any) => apiFetch('/auth/signup', { method: 'POST', body: JSON.stringify(data) }),
+    signup: (data: any) => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const productApi = {

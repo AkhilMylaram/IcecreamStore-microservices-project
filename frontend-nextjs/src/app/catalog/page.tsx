@@ -151,12 +151,12 @@ const Catalog = () => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
                                     transition={{ duration: 0.3 }}
-                                    key={product.id || product._id}
+                                    key={product.id}
                                     className="group bg-white dark:bg-card rounded-[2.5rem] p-4 shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-primary/10"
                                 >
                                     <div className="aspect-square relative rounded-[2rem] overflow-hidden mb-6 bg-primary/5">
                                         <Image
-                                            src={product.image || product.image_url || "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000&auto=format&fit=crop"}
+                                            src={product.image || "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000&auto=format&fit=crop"}
                                             alt={product.name}
                                             fill
                                             className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -176,7 +176,7 @@ const Catalog = () => {
                                             <p className="text-xl font-bold text-primary">${product.price}</p>
                                         </div>
 
-                                        <p className="text-xs text-muted-foreground mb-6 line-clamp-2">{product.desc || product.description}</p>
+                                        <p className="text-xs text-muted-foreground mb-6 line-clamp-2">{product.desc}</p>
 
                                         <button
                                             onClick={() => addItem(product)}

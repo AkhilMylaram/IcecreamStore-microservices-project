@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors("DefaultPolicy");
-
+app.UseRouting();
 app.MapReverseProxy();
 
 app.MapGet("/", () => "Ice Cream Store API Gateway is Running.");

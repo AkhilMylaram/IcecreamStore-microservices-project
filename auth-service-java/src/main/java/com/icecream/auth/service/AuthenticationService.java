@@ -56,7 +56,7 @@ public class AuthenticationService {
                                                 request.getEmail(),
                                                 request.getPassword()));
                 var user = repository.findByEmail(request.getEmail())
-                                .orElseThrow();
+                                .orElseThrow(() -> new RuntimeException("User not found"));
                 var jwtToken = jwtService.generateToken(user);
                 return AuthResponse.builder()
                                 .token(jwtToken)
@@ -70,7 +70,7 @@ public class AuthenticationService {
                         if (user != null) {
                                 return jwtService.isTokenValid(token, user);
                         }
-                }
+                    }
                 return false;
         }
 }

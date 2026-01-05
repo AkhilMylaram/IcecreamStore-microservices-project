@@ -12,6 +12,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   mysql:
     image: mysql:8.0
@@ -22,6 +27,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   mongodb:
     image: mongo:6.0
@@ -36,18 +46,24 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - auth-service
-      - user-service
-      - product-service
-      - order-service
-      - payment-service
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
 
   auth-service:
     build: ./auth-service-java
     ports:
       - "8081:8081"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/icecream_db
       SPRING_DATASOURCE_USERNAME: postgres
@@ -58,7 +74,8 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
       SPRING_DATASOURCE_USERNAME: postgres
@@ -76,9 +93,10 @@ services:
   order-service:
     build: ./order-service-java
     ports:
-      - "8083:8083"
+      - "8086:8083"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
       SPRING_DATASOURCE_USERNAME: postgres
@@ -87,7 +105,7 @@ services:
   payment-service:
     build: ./payment-service-dotnet
     ports:
-      - "8084:8083"
+      - "8083:8080"
     depends_on:
       - mysql
     environment:
@@ -96,9 +114,10 @@ services:
   inventory-service:
     build: ./inventory-service-java
     ports:
-      - "8085:8084"
+      - "8084:8084"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/inventory_db
       SPRING_DATASOURCE_USERNAME: root
@@ -116,7 +135,7 @@ services:
   admin-service:
     build: ./admin-service-dotnet
     ports:
-      - "8086:8085"
+      - "8085:8085"
     depends_on:
       - mysql
 
