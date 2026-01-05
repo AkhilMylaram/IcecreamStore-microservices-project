@@ -13,13 +13,14 @@ async def list_products(db = Depends(get_database)):
 
 @router.post("/", response_model=Product)
 async def create_product(product: Product, db = Depends(get_database)):
-    product_dict = product.dict(by_alias=True)
+    product_dict = product.model_dump(by_alias=True)
     if "_id" in product_dict and product_dict["_id"] is None:
         del product_dict["_id"]
     
     result = await db["products"].insert_one(product_dict)
     product_dict["_id"] = result.inserted_id
     return product_dict
+
 
 @router.get("/{product_id}", response_model=Product)
 async def get_product(product_id: str, db = Depends(get_database)):

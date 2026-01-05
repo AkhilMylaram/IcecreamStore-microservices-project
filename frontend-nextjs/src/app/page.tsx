@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Star, Clock, Truck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   return (

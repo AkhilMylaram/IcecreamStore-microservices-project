@@ -1,11 +1,34 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, Github } from "lucide-react";
+import { Mail, Lock, ArrowRight, Github, Loader2 } from "lucide-react";
+import { authApi } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const Login = () => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const router = useRouter();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        try {
+            const response = await authApi.login({ email, password });
+            localStorage.setItem("token", response.token);
+            router.push("/catalog");
+        } catch (err: any) {
+            setError(err.message || "Invalid credentials");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <main className="min-h-screen">
             <Navbar />
@@ -18,13 +41,21 @@ const Login = () => {
                             <p className="text-muted-foreground">Sign in to continue your ice cream journey.</p>
                         </div>
 
-                        <form className="space-y-6">
+                        <form className="space-y-6" onSubmit={handleSubmit}>
+                            {error && (
+                                <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-2xl text-center">
+                                    {error}
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold ml-1">Email Address</label>
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                     <input
                                         type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="name@example.com"
                                         className="w-full pl-12 pr-6 py-4 bg-muted border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none transition-all"
                                     />
@@ -40,14 +71,29 @@ const Login = () => {
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                     <input
                                         type="password"
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
                                         className="w-full pl-12 pr-6 py-4 bg-muted border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none transition-all"
                                     />
                                 </div>
                             </div>
 
-                            <button className="w-full py-5 bg-primary text-white rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all transform hover:scale-[1.02] shadow-lg shadow-primary/25 flex items-center justify-center gap-2">
-                                Sign In <ArrowRight className="w-5 h-5" />
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-5 bg-primary text-white rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all transform hover:scale-[1.02] shadow-lg shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" /> Signing In...
+                                    </>
+                                ) : (
+                                    <>
+                                        Sign In <ArrowRight className="w-5 h-5" />
+                                    </>
+                                )}
                             </button>
 
                             <div className="relative flex items-center gap-4 py-2">

@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Image from "next/image";
-import { Filter, Search, ShoppingCart, Star, SlidersHorizontal } from "lucide-react";
+import { Search, ShoppingCart, Star, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { productApi } from "@/lib/api";
+import { useCartStore } from "@/store/useCartStore";
 
 const MOCK_PRODUCTS = [
     {
@@ -32,7 +34,7 @@ const MOCK_PRODUCTS = [
         category: "Fruit",
         price: 4.75,
         rating: 4.7,
-        image: "https://images.unsplash.com/photo-1505394033343-4339f3c03823?q=80&w=1000&auto=format&fit=crop",
+        image: "https://images.unsplash.com/photo-1528577910701-b2da2f449884?q=80&w=1000&auto=format&fit=crop",
         desc: "Exotic Alfonso mangoes for a tropical kick."
     },
     {
@@ -41,7 +43,7 @@ const MOCK_PRODUCTS = [
         category: "Classic",
         price: 4.25,
         rating: 4.6,
-        image: "https://images.unsplash.com/photo-1570197788417-0e93323c9e90?q=80&w=1000&auto=format&fit=crop",
+        image: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?q=80&w=1000&auto=format&fit=crop",
         desc: "Classic Madagascar vanilla beans."
     },
     {
@@ -67,12 +69,31 @@ const MOCK_PRODUCTS = [
 const CATEGORIES = ["All", "Classic", "Fruit", "Chocolate", "Nuts"];
 
 const Catalog = () => {
+    const [products, setProducts] = useState(MOCK_PRODUCTS);
     const [activeCategory, setActiveCategory] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
+    const [loading, setLoading] = useState(true);
+    const addItem = useCartStore((state) => state.addItem);
 
-    const filteredProducts = MOCK_PRODUCTS.filter(p =>
+    React.useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await productApi.getProducts();
+                if (data && data.length > 0) {
+                    setProducts(data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch products, using mocks:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
+
+    const filteredProducts = products.filter(p =>
         (activeCategory === "All" || p.category === activeCategory) &&
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (p.name?.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     return (
@@ -104,7 +125,6 @@ const Catalog = () => {
                         </div>
                     </div>
 
-                    {/* Categories Filter (Mobile Scrollable, Desktop Grid) */}
                     <div className="flex items-center gap-3 overflow-x-auto pb-6 scrollbar-hide mb-8">
                         {CATEGORIES.map(cat => (
                             <button
@@ -122,7 +142,6 @@ const Catalog = () => {
                         ))}
                     </div>
 
-                    {/* Product Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                         <AnimatePresence mode="popLayout">
                             {filteredProducts.map((product) => (
@@ -132,19 +151,19 @@ const Catalog = () => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
                                     transition={{ duration: 0.3 }}
-                                    key={product.id}
+                                    key={product.id || product._id}
                                     className="group bg-white dark:bg-card rounded-[2.5rem] p-4 shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-primary/10"
                                 >
                                     <div className="aspect-square relative rounded-[2rem] overflow-hidden mb-6 bg-primary/5">
                                         <Image
-                                            src={product.image}
+                                            src={product.image || product.image_url || "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000&auto=format&fit=crop"}
                                             alt={product.name}
                                             fill
                                             className="object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
                                         <div className="absolute top-4 right-4 glass px-3 py-1 rounded-full flex items-center gap-1">
                                             <Star className="w-3 h-3 fill-orange-400 text-orange-400" />
-                                            <span className="text-[10px] font-bold">{product.rating}</span>
+                                            <span className="text-[10px] font-bold">{product.rating || 4.5}</span>
                                         </div>
                                     </div>
 
@@ -157,9 +176,12 @@ const Catalog = () => {
                                             <p className="text-xl font-bold text-primary">${product.price}</p>
                                         </div>
 
-                                        <p className="text-xs text-muted-foreground mb-6 line-clamp-2">{product.desc}</p>
+                                        <p className="text-xs text-muted-foreground mb-6 line-clamp-2">{product.desc || product.description}</p>
 
-                                        <button className="w-full py-4 bg-muted hover:bg-primary hover:text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group-hover:bg-primary group-hover:text-white">
+                                        <button
+                                            onClick={() => addItem(product)}
+                                            className="w-full py-4 bg-muted hover:bg-primary hover:text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group-hover:bg-primary group-hover:text-white"
+                                        >
                                             <ShoppingCart className="w-5 h-5" />
                                             Add to Cart
                                         </button>

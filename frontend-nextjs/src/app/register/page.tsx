@@ -1,11 +1,37 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { authApi } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const Register = () => {
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const router = useRouter();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        try {
+            const response = await authApi.signup({ firstName, lastName, email, password });
+            localStorage.setItem("token", response.token);
+            localStorage.setItem("userEmail", email);
+            router.push("/catalog");
+        } catch (err: any) {
+            setError(err.message || "Registration failed");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <main className="min-h-screen">
             <Navbar />
@@ -18,16 +44,41 @@ const Register = () => {
                             <p className="text-muted-foreground">Join the sweet club and start ordering.</p>
                         </div>
 
-                        <form className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold ml-1">Full Name</label>
-                                <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                                    <input
-                                        type="text"
-                                        placeholder="John Doe"
-                                        className="w-full pl-12 pr-6 py-4 bg-muted border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none transition-all"
-                                    />
+                        <form className="space-y-6" onSubmit={handleSubmit}>
+                            {error && (
+                                <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-2xl text-center">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold ml-1">First Name</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            required
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            placeholder="John"
+                                            className="w-full pl-10 pr-4 py-3 bg-muted border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none transition-all text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold ml-1">Last Name</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            required
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            placeholder="Doe"
+                                            className="w-full pl-10 pr-4 py-3 bg-muted border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none transition-all text-sm"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -37,6 +88,9 @@ const Register = () => {
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                     <input
                                         type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="name@example.com"
                                         className="w-full pl-12 pr-6 py-4 bg-muted border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none transition-all"
                                     />
@@ -49,6 +103,9 @@ const Register = () => {
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                     <input
                                         type="password"
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
                                         className="w-full pl-12 pr-6 py-4 bg-muted border-2 border-transparent focus:border-primary/20 rounded-2xl outline-none transition-all"
                                     />
@@ -56,12 +113,24 @@ const Register = () => {
                             </div>
 
                             <div className="flex items-center gap-2 px-1">
-                                <input type="checkbox" className="w-4 h-4 rounded text-primary accent-primary" />
+                                <input type="checkbox" required className="w-4 h-4 rounded text-primary accent-primary" />
                                 <span className="text-xs text-muted-foreground">I agree to the <Link href="#" className="text-primary font-bold">Terms & Conditions</Link></span>
                             </div>
 
-                            <button className="w-full py-5 bg-primary text-white rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all transform hover:scale-[1.02] shadow-lg shadow-primary/25 flex items-center justify-center gap-2">
-                                Join Now <ArrowRight className="w-5 h-5" />
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-5 bg-primary text-white rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all transform hover:scale-[1.02] shadow-lg shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" /> Joining...
+                                    </>
+                                ) : (
+                                    <>
+                                        Join Now <ArrowRight className="w-5 h-5" />
+                                    </>
+                                )}
                             </button>
                         </form>
 

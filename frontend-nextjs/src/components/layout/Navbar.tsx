@@ -6,9 +6,17 @@ import { usePathname } from "next/navigation";
 import { Home, ShoppingBag, ShoppingCart, User, Search, Menu } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/useCartStore";
 
 const Navbar = () => {
     const pathname = usePathname();
+    const items = useCartStore((state) => state.items);
+    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
+    const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsLoggedIn(!!localStorage.getItem("token"));
+    }, []);
 
     const navItems = [
         { name: "Home", href: "/", icon: Home },
@@ -52,15 +60,26 @@ const Navbar = () => {
                         </button>
                         <Link href="/cart" className="relative p-2 hover:bg-muted rounded-full transition-colors">
                             <ShoppingCart className="w-5 h-5" />
-                            <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-[10px] text-white rounded-full flex items-center justify-center">
-                                0
-                            </span>
+                            {cartCount > 0 && (
+                                <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-[10px] text-white rounded-full flex items-center justify-center">
+                                    {cartCount}
+                                </span>
+                            )}
                         </Link>
-                        <Link href="/login">
-                            <button className="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary-dark transition-all transform hover:scale-105">
-                                Login
-                            </button>
-                        </Link>
+                        {isLoggedIn ? (
+                            <Link href="/profile">
+                                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold">
+                                    {/* Mock user initial */}
+                                    U
+                                </div>
+                            </Link>
+                        ) : (
+                            <Link href="/login">
+                                <button className="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary-dark transition-all transform hover:scale-105">
+                                    Login
+                                </button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </nav>

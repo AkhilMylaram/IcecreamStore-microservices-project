@@ -31,6 +31,6 @@ public class Order {
     private Double totalAmount;
 
     private String status; // PENDING, PAID, SHIPPED, DELIVERED
-
+    private String shippingAddress;
     private LocalDateTime createdAt;
 }

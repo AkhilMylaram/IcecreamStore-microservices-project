@@ -1,45 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Navbar from "@/components/layout/Navbar";
 import Image from "next/image";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-
-const MOCK_CART = [
-    {
-        id: 1,
-        name: "Strawberry Bliss",
-        price: 4.99,
-        quantity: 2,
-        image: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?q=80&w=1000&auto=format&fit=crop"
-    },
-    {
-        id: 2,
-        name: "Chocolate Heaven",
-        price: 5.50,
-        quantity: 1,
-        image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000&auto=format&fit=crop"
-    }
-];
+import { useCartStore } from "@/store/useCartStore";
 
 const Cart = () => {
-    const [items, setItems] = useState(MOCK_CART);
+    const { items, updateQuantity, removeItem } = useCartStore();
 
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    const delivery = 2.50;
+    const delivery = items.length > 0 ? 2.50 : 0;
     const total = subtotal + delivery;
-
-    const updateQuantity = (id: number, delta: number) => {
-        setItems(items.map(item =>
-            item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-        ));
-    };
-
-    const removeItem = (id: number) => {
-        setItems(items.filter(item => item.id !== id));
-    };
 
     return (
         <main className="min-h-screen pb-24 md:pb-12">
@@ -130,11 +104,6 @@ const Cart = () => {
                                 <p className="text-center mt-6 text-xs text-muted-foreground">
                                     Secure checkout powered by <span className="font-bold text-primary">IcePay</span>
                                 </p>
-                            </div>
-
-                            <div className="bg-primary/5 rounded-[2rem] p-6 border border-primary/10">
-                                <p className="text-sm font-semibold text-primary mb-2">💡 Pro Tip</p>
-                                <p className="text-xs text-muted-foreground">Add one more scoop to get 50% off on delivery!</p>
                             </div>
                         </div>
                     </div>
