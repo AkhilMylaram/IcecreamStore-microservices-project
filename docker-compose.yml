@@ -130,7 +130,7 @@ services:
   payment-service:
     build: ./payment-service-dotnet
     ports:
-      - "8084:8083"
+      - "8085:8083"
     depends_on:
       - mysql
     environment:
@@ -175,7 +175,7 @@ services:
   admin-service:
     build: ./admin-service-dotnet
     ports:
-      - "8085:8085"
+      - "8086:8085"
     depends_on:
       - mysql
     healthcheck:

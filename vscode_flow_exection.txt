@@ -1,0 +1,609 @@
+=================================================================
+ICECREAMSTORE MICROSERVICES - COMPLETE SERVICE ARCHITECTURE
+=================================================================
+
+Last Updated: January 6, 2026
+Status: ✅ All Services Configured & Ready
+
+=================================================================
+SECTION 1: PORT MAPPINGS (UPDATED & CONFLICT-FREE)
+=================================================================
+
+┌──────────────────────────────────────────────────────────────┐
+│ SERVICE PORT MAPPING SUMMARY                                 │
+├──────────────────────────────────────────────────────────────┤
+│ Service Name          │ Container Port │ Host Port │ Status │
+├──────────────────────────────────────────────────────────────┤
+│ API Gateway           │ 8080          │ 8080      │ ✅     │
+│ Auth Service          │ 8081          │ 8081      │ ✅     │
+│ User Service          │ 8082          │ 8082      │ ✅     │
+│ Order Service         │ 8083          │ 8083      │ ✅     │
+│ Inventory Service     │ 8084          │ 8084      │ ✅     │
+│ Payment Service       │ 8083          │ 8085      │ ✅     │
+│ Admin Service         │ 8085          │ 8086      │ ✅     │
+│ Product Service       │ 8000          │ 8000      │ ✅     │
+│ Notification Service  │ 8001          │ 8001      │ ✅     │
+│ Frontend              │ 3000          │ 3000      │ ✅     │
+└──────────────────────────────────────────────────────────────┘
+
+DATABASE PORTS:
+- PostgreSQL: 5432
+- MySQL: 3306
+- MongoDB: 27017
+
+=================================================================
+SECTION 2: SERVICE DETAILS - PROGRAMMING LANGUAGES & DATABASES
+=================================================================
+
+1. API GATEWAY (.NET 8)
+   ├── Programming Language: C# / .NET 8
+   ├── Framework: ASP.NET Core + YARP Reverse Proxy
+   ├── Database: None (Pure routing layer)
+   ├── Technology Stack: YARP 2.1.0
+   └── Function: Routes all incoming requests to appropriate services
+
+2. AUTH SERVICE (Java/Spring Boot)
+   ├── Programming Language: Java 17
+   ├── Framework: Spring Boot 3.2.4 + Spring Security
+   ├── Database: PostgreSQL (icecream_db)
+   ├── Schema: auth_schema
+   ├── Technology Stack: Spring Data JPA, JWT, BCrypt
+   └── Function: User authentication & JWT token management
+
+3. USER SERVICE (Java/Spring Boot)
+   ├── Programming Language: Java 17
+   ├── Framework: Spring Boot 3.2.4
+   ├── Database: PostgreSQL (user_db)
+   ├── Schema: user_schema
+   ├── Technology Stack: Spring Data JPA
+   └── Function: User profile management
+
+4. PRODUCT SERVICE (Python/FastAPI)
+   ├── Programming Language: Python 3.11
+   ├── Framework: FastAPI 0.115.0
+   ├── Database: MongoDB
+   ├── Collection: products
+   ├── Technology Stack: Motor (async MongoDB), Pydantic
+   └── Function: Ice cream product catalog management
+
+5. ORDER SERVICE (Java/Spring Boot)
+   ├── Programming Language: Java 17
+   ├── Framework: Spring Boot 3.2.4
+   ├── Database: PostgreSQL (order_db)
+   ├── Schema: order_schema
+   ├── Technology Stack: Spring Data JPA
+   └── Function: Order lifecycle management
+
+6. PAYMENT SERVICE (.NET 8)
+   ├── Programming Language: C# / .NET 8
+   ├── Framework: ASP.NET Core 8.0
+   ├── Database: MySQL (payment_db)
+   ├── Technology Stack: Entity Framework Core 8.0, Pomelo.EntityFrameworkCore.MySql
+   └── Function: Payment processing & transaction management
+
+7. INVENTORY SERVICE (Java/Spring Boot)
+   ├── Programming Language: Java 17
+   ├── Framework: Spring Boot 3.2.4
+   ├── Database: MySQL (inventory_db)
+   ├── Technology Stack: Spring Data JPA
+   └── Function: Real-time stock tracking
+
+8. NOTIFICATION SERVICE (Python/FastAPI)
+   ├── Programming Language: Python 3.11
+   ├── Framework: FastAPI 0.115.0
+   ├── Database: MongoDB
+   ├── Collection: notifications
+   ├── Technology Stack: Motor (async MongoDB), Pydantic
+   └── Function: Email/SMS notifications & alerts
+
+9. ADMIN SERVICE (.NET 8)
+   ├── Programming Language: C# / .NET 8
+   ├── Framework: ASP.NET Core 8.0
+   ├── Database: MySQL (admin_db)
+   ├── Technology Stack: Entity Framework Core 8.0
+   └── Function: Internal business operations & dashboard
+
+10. FRONTEND (Next.js)
+    ├── Programming Language: TypeScript
+    ├── Framework: Next.js 16.1.1 (React 19.2.3)
+    ├── Database: None (Client-side)
+    ├── Technology Stack: Tailwind CSS, Framer Motion, Zustand, React Query
+    └── Function: User interface for all services
+
+=================================================================
+SECTION 3: SERVICE DEPENDENCIES & STARTUP ORDER
+=================================================================
+
+STARTUP ORDER (Based on dependencies):
+
+1. DATABASES (Start first)
+   ├── PostgreSQL (Auth, User, Order services)
+   ├── MySQL (Payment, Inventory, Admin services)
+   └── MongoDB (Product, Notification services)
+
+2. BACKEND SERVICES (Start second)
+   ├── Auth Service (depends on PostgreSQL)
+   ├── User Service (depends on PostgreSQL)
+   ├── Product Service (depends on MongoDB)
+   ├── Order Service (depends on PostgreSQL)
+   ├── Payment Service (depends on MySQL)
+   ├── Inventory Service (depends on MySQL)
+   ├── Notification Service (depends on MongoDB)
+   └── Admin Service (depends on MySQL)
+
+3. API GATEWAY (Start third)
+   └── Depends on: Auth, User, Product, Order, Payment services
+
+4. FRONTEND (Start last)
+   └── Depends on: API Gateway
+
+DEPENDENCY CHAIN:
+```
+Databases → Backend Services → API Gateway → Frontend
+```
+
+=================================================================
+SECTION 4: API CALLS & FUNCTIONALITY
+=================================================================
+
+1. API GATEWAY (http://localhost:8080)
+   ├── Function: Single entry point for all frontend requests
+   ├── Routes:
+   │   ├── /api/auth/* → Auth Service (8081)
+   │   ├── /api/users/* → User Service (8082)
+   │   ├── /api/products/* → Product Service (8000)
+   │   ├── /api/orders/* → Order Service (8083)
+   │   ├── /api/payments/* → Payment Service (8085)
+   │   ├── /api/inventory/* → Inventory Service (8084)
+   │   └── /api/notifications/* → Notification Service (8001)
+   └── CORS: Allows http://localhost:3000, 3001, 8080
+
+2. AUTH SERVICE (http://localhost:8081)
+   ├── Function: Authentication & Authorization
+   ├── API Endpoints:
+   │   ├── POST /api/auth/register
+   │   │   ├── Request: {email, password, firstName, lastName}
+   │   │   ├── Response: {token}
+   │   │   ├── Creates: User in auth_db + Profile in user_db
+   │   │   └── Security: BCrypt password hashing
+   │   ├── POST /api/auth/login
+   │   │   ├── Request: {email, password}
+   │   │   ├── Response: {token}
+   │   │   └── Security: JWT token generation
+   │   ├── GET /api/auth/validate
+   │   │   ├── Headers: Authorization: Bearer <token>
+   │   │   ├── Response: true/false
+   │   │   └── Validates: JWT token expiration & signature
+   │   └── POST /api/auth/logout
+   │       └── Response: "Logged out successfully"
+   ├── Database: PostgreSQL (icecream_db.auth_schema.users)
+   ├── Dependencies: PostgreSQL (health check)
+   └── Security: JWT tokens, BCrypt, Spring Security
+
+3. USER SERVICE (http://localhost:8082)
+   ├── Function: User profile management
+   ├── API Endpoints:
+   │   ├── GET /api/users/{email}
+   │   │   ├── Response: UserProfile {id, email, firstName, lastName, phone, address}
+   │   │   └── Used by: Frontend profile page
+   │   └── POST /api/users
+   │       ├── Request: UserProfile {email, firstName, lastName, phone?, address?}
+   │       ├── Response: Created/Updated UserProfile
+   │       └── Called by: Auth Service during registration
+   ├── Database: PostgreSQL (user_db.user_schema.user_profiles)
+   ├── Dependencies: PostgreSQL (health check)
+   └── Security: Requires valid JWT token (except registration flow)
+
+4. PRODUCT SERVICE (http://localhost:8000)
+   ├── Function: Ice cream product catalog
+   ├── API Endpoints:
+   │   ├── GET /api/products
+   │   │   ├── Response: Array of Product objects
+   │   │   └── Used by: Frontend catalog page
+   │   ├── GET /api/products/{id}
+   │   │   ├── Response: Single Product object
+   │   │   └── Used by: Frontend product detail page
+   │   └── GET / (root)
+   │       └── Response: {message: "Welcome to Product Service"}
+   ├── Database: MongoDB (products collection)
+   ├── Dependencies: MongoDB (health check)
+   └── Data Seeding: Auto-seeds 4 products on startup
+
+5. ORDER SERVICE (http://localhost:8083)
+   ├── Function: Order lifecycle management
+   ├── API Endpoints:
+   │   ├── POST /api/orders
+   │   │   ├── Request: Order {userId, items[], total, status}
+   │   │   ├── Response: Created Order
+   │   │   └── Called by: Frontend checkout
+   │   ├── GET /api/orders/user/{email}
+   │   │   ├── Response: Array of Order objects
+   │   │   └── Used by: Frontend orders page
+   │   └── GET /api/orders/{id}
+   │       └── Response: Single Order object
+   ├── Database: PostgreSQL (order_db.order_schema.orders)
+   ├── Dependencies: PostgreSQL (health check)
+   └── Security: Requires valid JWT token
+
+6. PAYMENT SERVICE (http://localhost:8085)
+   ├── Function: Payment processing (mock)
+   ├── API Endpoints:
+   │   ├── POST /api/payments
+   │   │   ├── Request: Payment {orderId, amount, cardNumber, cvv}
+   │   │   ├── Response: Payment {id, status, transactionId}
+   │   │   └── Note: Mock processing (no real charges)
+   │   └── GET /api/payments/{id}
+   │       └── Response: Payment status
+   ├── Database: MySQL (payment_db)
+   ├── Dependencies: MySQL (health check)
+   └── Security: Requires valid JWT token
+
+7. INVENTORY SERVICE (http://localhost:8084)
+   ├── Function: Real-time stock tracking
+   ├── API Endpoints:
+   │   ├── GET /api/inventory/{productId}
+   │   │   ├── Response: {productId, quantity, status}
+   │   │   └── Used by: Frontend product page
+   │   ├── POST /api/inventory/update
+   │   │   ├── Request: {productId, quantity}
+   │   │   └── Called by: Order Service after order
+   │   └── GET /api/inventory/all
+   │       └── Response: All inventory items
+   ├── Database: MySQL (inventory_db)
+   ├── Dependencies: MySQL (health check)
+   └── Security: Requires valid JWT token
+
+8. NOTIFICATION SERVICE (http://localhost:8001)
+   ├── Function: Email/SMS notifications
+   ├── API Endpoints:
+   │   ├── POST /api/notifications/send
+   │   │   ├── Request: Message {recipient, subject, body}
+   │   │   ├── Response: {status, recipient}
+   │   │   └── Note: Logs to console (mock email)
+   │   └── GET /api/notifications/{recipient}
+   │       └── Response: Array of past notifications
+   ├── Database: MongoDB (notifications collection)
+   ├── Dependencies: MongoDB (health check)
+   └── Security: Requires valid JWT token
+
+9. ADMIN SERVICE (http://localhost:8086)
+   ├── Function: Internal business operations
+   ├── API Endpoints:
+   │   ├── GET / (root)
+   │   │   └── Response: "Admin Service is Running."
+   │   └── [Additional admin endpoints would go here]
+   ├── Database: MySQL (admin_db)
+   ├── Dependencies: MySQL (health check)
+   └── Security: Requires valid JWT token (admin role)
+
+10. FRONTEND (http://localhost:3000)
+    ├── Function: User interface
+    ├── Pages:
+    │   ├── / - Home/Landing
+    │   ├── /register - User registration
+    │   ├── /login - User login
+    │   ├── /catalog - Product listing
+    │   ├── /catalog/{id} - Product detail
+    │   ├── /cart - Shopping cart
+    │   ├── /checkout - Checkout process
+    │   ├── /orders - Order history
+    │   ├── /profile - User profile
+    │   └── /admin - Admin dashboard
+    ├── API Calls:
+    │   ├── Auth: /api/auth/register, /api/auth/login
+    │   ├── Products: /api/products, /api/products/{id}
+    │   ├── Users: /api/users/{email}
+    │   ├── Orders: /api/orders, /api/orders/user/{email}
+    │   ├── Payments: /api/payments
+    │   └── Inventory: /api/inventory/{productId}
+    ├── State Management: Zustand (cart, user)
+    ├── Data Fetching: React Query
+    └── Styling: Tailwind CSS + Framer Motion
+
+=================================================================
+SECTION 5: AUTHENTICATION FLOW
+=================================================================
+
+REGISTRATION FLOW:
+1. Frontend → API Gateway → Auth Service (POST /api/auth/register)
+2. Auth Service:
+   - Checks for duplicate email
+   - Hashes password with BCrypt
+   - Creates user in auth_db.auth_schema.users
+   - Calls User Service to create profile
+   - Generates JWT token
+   - Returns token to frontend
+3. Frontend stores token in localStorage
+
+LOGIN FLOW:
+1. Frontend → API Gateway → Auth Service (POST /api/auth/login)
+2. Auth Service:
+   - Verifies email exists
+   - Compares password hash with BCrypt
+   - Generates JWT token
+   - Returns token to frontend
+3. Frontend stores token in localStorage
+
+TOKEN VALIDATION FLOW:
+1. Frontend includes token in Authorization header
+2. API Gateway forwards request to target service
+3. Target service validates token via Auth Service
+4. Request proceeds if valid
+
+=================================================================
+SECTION 6: DATA MODELS
+=================================================================
+
+AUTH SERVICE (PostgreSQL - auth_db.auth_schema.users):
+┌─────────────┬──────────┬──────────┬────────────────────────┐
+│ Field       │ Type     │ Nullable │ Description            │
+├─────────────┼──────────┼──────────┼────────────────────────┤
+│ id          │ BIGINT   │ No       │ Primary Key            │
+│ email       │ VARCHAR  │ No       │ Unique, Indexed        │
+│ password    │ VARCHAR  │ No       │ BCrypt hashed          │
+│ role        │ VARCHAR  │ No       │ USER/ADMIN             │
+└─────────────┴──────────┴──────────┴────────────────────────┘
+
+USER SERVICE (PostgreSQL - user_db.user_schema.user_profiles):
+┌─────────────┬──────────┬──────────┬────────────────────────┐
+│ Field       │ Type     │ Nullable │ Description            │
+├─────────────┼──────────┼──────────┼────────────────────────┤
+│ id          │ BIGINT   │ No       │ Primary Key            │
+│ email       │ VARCHAR  │ No       │ Unique, Indexed        │
+│ firstName   │ VARCHAR  │ Yes      │ User's first name      │
+│ lastName    │ VARCHAR  │ Yes      │ User's last name       │
+│ phoneNumber │ VARCHAR  │ Yes      │ Optional phone         │
+│ address     │ TEXT     │ Yes      │ Optional address       │
+└─────────────┴──────────┴──────────┴────────────────────────┘
+
+PRODUCT SERVICE (MongoDB - products collection):
+┌────────────────┬──────────┬─────────────────────────────┐
+│ Field          │ Type     │ Description                 │
+├────────────────┼──────────┼─────────────────────────────┤
+│ _id            │ ObjectId │ Primary Key                 │
+│ name           │ String   │ Product name                │
+│ category       │ String   │ Category (Fruit, etc.)      │
+│ price          │ Float    │ Price                       │
+│ rating         │ Float    │ User rating (1-5)           │
+│ image_url      │ String   │ Image URL                   │
+│ description    │ String   │ Product description         │
+│ image_prompt   │ String   │ AI image generation prompt  │
+│ inventory_count│ Integer  │ Stock quantity              │
+└────────────────┴──────────┴─────────────────────────────┘
+
+ORDER SERVICE (PostgreSQL - order_db.order_schema.orders):
+┌─────────────┬──────────┬─────────────────────────────┐
+│ Field       │ Type     │ Description                 │
+├─────────────┼──────────┼─────────────────────────────┤
+│ id          │ BIGINT   │ Primary Key                 │
+│ userId      │ VARCHAR  │ User email                  │
+│ items       │ JSON     │ Array of order items        │
+│ total       │ DECIMAL  │ Total amount                │
+│ status      │ VARCHAR  │ PENDING/COMPLETED/CANCELLED │
+│ createdAt   │ TIMESTAMP│ Order timestamp             │
+└─────────────┴──────────┴─────────────────────────────┘
+
+PAYMENT SERVICE (MySQL - payment_db):
+┌─────────────┬──────────┬─────────────────────────────┐
+│ Field       │ Type     │ Description                 │
+├─────────────┼──────────┼─────────────────────────────┤
+│ id          │ INT      │ Primary Key                 │
+│ orderId     │ INT      │ Related order ID            │
+│ amount      │ DECIMAL  │ Payment amount              │
+│ status      │ VARCHAR  │ SUCCESS/FAILED/PENDING      │
+│ cardNumber  │ VARCHAR  │ Masked card number          │
+│ cvv         │ VARCHAR  │ Encrypted CVV               │
+│ transactionId│ VARCHAR │ Mock transaction ID         │
+│ createdAt   │ TIMESTAMP│ Payment timestamp           │
+└─────────────┴──────────┴─────────────────────────────┘
+
+INVENTORY SERVICE (MySQL - inventory_db):
+┌─────────────┬──────────┬─────────────────────────────┐
+│ Field       │ Type     │ Description                 │
+├─────────────┼──────────┼─────────────────────────────┤
+│ id          │ INT      │ Primary Key                 │
+│ productId   │ VARCHAR  │ Product identifier          │
+│ quantity    │ INT      │ Stock quantity              │
+│ status      │ VARCHAR  │ IN_STOCK/LOW_STOCK/OUT      │
+│ updatedAt   │ TIMESTAMP│ Last update timestamp       │
+└─────────────┴──────────┴─────────────────────────────┘
+
+NOTIFICATION SERVICE (MongoDB - notifications collection):
+┌─────────────┬──────────┬─────────────────────────────┐
+│ Field       │ Type     │ Description                 │
+├─────────────┼──────────┼─────────────────────────────┤
+│ _id         │ ObjectId │ Primary Key                 │
+│ recipient   │ String   │ Email/phone number          │
+│ subject     │ String   │ Notification subject        │
+│ body        │ String   │ Notification content        │
+│ sentAt      │ DateTime │ Timestamp                   │
+│ status      │ String   │ SENT/FAILED                 │
+└─────────────┴──────────┴─────────────────────────────┘
+
+=================================================================
+SECTION 7: SECURITY & CONFIGURATION
+=================================================================
+
+JWT CONFIGURATION:
+- Algorithm: HS256
+- Secret Key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+- Expiration: 86400000ms (1 day)
+- Storage: localStorage (frontend)
+
+CORS CONFIGURATION:
+- Allowed Origins: http://localhost:3000, http://localhost:3001, http://localhost:8080
+- Allowed Methods: GET, POST, PUT, DELETE, OPTIONS
+- Allowed Headers: Authorization, Content-Type, X-Requested-With
+- Credentials: true
+
+PASSWORD SECURITY:
+- Hashing: BCrypt
+- Strength: 10 rounds
+- Storage: Hashed only (never plain text)
+
+HEALTH CHECKS:
+- All services expose /actuator/health (Java) or / (Python/.NET)
+- API Gateway checks all backend services before routing
+- Docker uses health checks for startup ordering
+
+=================================================================
+SECTION 8: DOCKER COMPOSE CONFIGURATION
+=================================================================
+
+SERVICES DEFINITION:
+Each service includes:
+- build: Path to Dockerfile
+- ports: Host:Container port mapping
+- depends_on: Service dependencies with health conditions
+- environment: Configuration variables
+- healthcheck: Health check commands
+
+NETWORKING:
+- All services share the default Docker network
+- Service discovery via service names (e.g., "postgres", "auth-service")
+- Internal communication uses container names
+
+VOLUMES:
+- postgres_data: PostgreSQL persistent storage
+- mysql_data: MySQL persistent storage
+- mongodb_data: MongoDB persistent storage
+
+=================================================================
+SECTION 9: TESTING & VERIFICATION
+=================================================================
+
+VERIFICATION SCRIPTS:
+1. verify-docker-setup.js - Checks all configurations
+2. comprehensive-test.js - Tests authentication flow
+3. start-and-test.sh - Automated setup and testing
+
+MANUAL TESTING:
+```bash
+# Start services
+docker-compose up -d --build
+
+# Check status
+docker-compose ps
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Test registration
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"firstName":"Test","lastName":"User","email":"test@example.com","password":"Test123!"}'
+
+# Test login
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!"}'
+
+# Test product access
+curl -X GET http://localhost:8080/api/products
+```
+
+=================================================================
+SECTION 10: TROUBLESHOOTING
+=================================================================
+
+COMMON ISSUES:
+
+1. Port Conflicts:
+   - Error: "Bind for 0.0.0.0:XXXX failed: port is already allocated"
+   - Solution: Check docker-compose.yml for duplicate ports
+   - Fix: Reassign conflicting ports (see Section 1)
+
+2. Service Dependencies:
+   - Error: "Container failed to start due to dependency"
+   - Solution: Check health checks and dependency conditions
+   - Fix: Ensure databases start before services
+
+3. CORS Issues:
+   - Error: "Access to fetch blocked by CORS policy"
+   - Solution: Verify CORS configuration in all services
+   - Fix: Check allowed origins match frontend URL
+
+4. Database Connection:
+   - Error: "Connection refused" or "Database not available"
+   - Solution: Check database health and connection strings
+   - Fix: Verify environment variables in docker-compose.yml
+
+5. Authentication Failures:
+   - Error: "Invalid token" or "Unauthorized"
+   - Solution: Check JWT secret and token expiration
+   - Fix: Verify token is included in Authorization header
+
+DEBUGGING COMMANDS:
+```bash
+# Check all containers
+docker-compose ps
+
+# View specific service logs
+docker-compose logs auth-service
+
+# Check network connectivity
+docker network inspect icecreamstore-microservices-project_default
+
+# Test service health
+curl http://localhost:8081/actuator/health
+curl http://localhost:8000/
+```
+
+=================================================================
+SECTION 11: MAINTENANCE & UPDATES
+=================================================================
+
+WHEN TO UPDATE THIS DOCUMENT:
+- Any port mapping changes
+- New service additions
+- Database schema changes
+- API endpoint modifications
+- Security configuration updates
+- Dependency changes
+
+UPDATE PROCESS:
+1. Make the change in code/configuration
+2. Update this document with the new details
+3. Run verification script: node verify-docker-setup.js
+4. Test the change: node comprehensive-test.js
+5. Document the change in CHANGELOG.md
+
+=================================================================
+SECTION 12: QUICK REFERENCE
+=================================================================
+
+ACCESS URLS:
+- Frontend: http://localhost:3000
+- API Gateway: http://localhost:8080
+- Auth Service: http://localhost:8081
+- User Service: http://localhost:8082
+- Order Service: http://localhost:8083
+- Inventory Service: http://localhost:8084
+- Payment Service: http://localhost:8085
+- Admin Service: http://localhost:8086
+- Product Service: http://localhost:8000
+- Notification Service: http://localhost:8001
+
+DATABASES:
+- PostgreSQL: localhost:5432
+- MySQL: localhost:3306
+- MongoDB: localhost:27017
+
+DOCKER COMMANDS:
+- Start: docker-compose up -d --build
+- Stop: docker-compose down
+- Logs: docker-compose logs -f [service]
+- Status: docker-compose ps
+- Restart: docker-compose restart [service]
+
+TESTING:
+- Verify setup: node verify-docker-setup.js
+- Run tests: node comprehensive-test.js
+- Manual test: ./start-and-test.sh
+
+=================================================================
+END OF DOCUMENTATION
+=================================================================
+
+This document is the single source of truth for all service configurations.
+Always update when making changes to ensure documentation stays current.
