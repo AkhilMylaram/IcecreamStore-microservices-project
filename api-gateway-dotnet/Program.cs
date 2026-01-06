@@ -25,5 +25,6 @@ app.UseRouting();
 app.MapReverseProxy();
 
 app.MapGet("/", () => "Ice Cream Store API Gateway is Running.");
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "api-gateway" }));
 
 app.Run();

@@ -17,6 +17,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 10s
 
   mysql:
     image: mysql:8.0
@@ -32,6 +33,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 10s
 
   mongodb:
     image: mongo:6.0
@@ -57,10 +59,11 @@ services:
       payment-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
   auth-service:
     build: ./auth-service-java
@@ -78,6 +81,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+      start_period: 60s
 
   user-service:
     build: ./user-service-java
@@ -95,6 +100,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+      start_period: 60s
 
   product-service:
     build: ./product-service-python
@@ -105,10 +112,11 @@ services:
     environment:
       MONGODB_URL: mongodb://mongodb:27017
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
   order-service:
     build: ./order-service-java
@@ -126,6 +134,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   payment-service:
     build: ./payment-service-dotnet
@@ -136,10 +145,12 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=mysql;Database=payment_db;User=root;Password=password;"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
+      start_period: 30s
 
   inventory-service:
     build: ./inventory-service-java
@@ -157,6 +168,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   notification-service:
     build: ./notification-service-python
@@ -167,10 +179,11 @@ services:
     environment:
       MONGODB_URL: mongodb://mongodb:27017
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
   admin-service:
     build: ./admin-service-dotnet
@@ -179,10 +192,12 @@ services:
     depends_on:
       - mysql
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8085/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
+      start_period: 30s
 
   # Frontend
   frontend:
@@ -199,6 +214,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 40s
 
 volumes:
   postgres_data:

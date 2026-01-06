@@ -23,5 +23,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapGet("/", () => "Admin Service is Running.");
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "admin-service" }));
 
 app.Run();

@@ -78,3 +78,7 @@ app.include_router(products.router, prefix="/api/products", tags=["products"])
 @app.get("/")
 async def root():
     return {"message": "Welcome to Product Service"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "product-service"}

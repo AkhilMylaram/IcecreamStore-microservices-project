@@ -51,3 +51,7 @@ async def get_notifications(recipient: str):
 @app.get("/")
 async def root():
     return {"message": "Welcome to Notification Service"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "notification-service"}

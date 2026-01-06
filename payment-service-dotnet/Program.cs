@@ -30,6 +30,10 @@ app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
+// Add health check endpoints
+app.MapGet("/", () => "Payment Service is Running.");
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "payment-service" }));
+
 // Ensure database is created with retry logic after app is built
 using (var scope = app.Services.CreateScope())
 {
