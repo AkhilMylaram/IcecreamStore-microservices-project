@@ -1,7 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    // Ensure endpoint starts with /api for API Gateway routing
+    const formattedEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+    
+    const response = await fetch(`${API_URL}${formattedEndpoint}`, {
         ...options,
         headers: {
             'Content-Type': 'application/json',

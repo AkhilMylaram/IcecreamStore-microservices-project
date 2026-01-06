@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,6 +7,15 @@ import os
 import datetime
 
 app = FastAPI(title="Notification Service")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://mongodb:27017")
 client = AsyncIOMotorClient(MONGODB_URL)

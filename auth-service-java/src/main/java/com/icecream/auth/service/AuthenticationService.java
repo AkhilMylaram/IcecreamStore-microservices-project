@@ -23,6 +23,11 @@ public class AuthenticationService {
         private final org.springframework.web.client.RestTemplate restTemplate;
 
         public AuthResponse register(RegisterRequest request) {
+                // Check if user already exists
+                if (repository.findByEmail(request.getEmail()).isPresent()) {
+                        throw new RuntimeException("User already exists with email: " + request.getEmail());
+                }
+
                 var user = User.builder()
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))
@@ -30,7 +35,7 @@ public class AuthenticationService {
                                 .build();
                 repository.save(user);
 
-                // Call user-service to create profile
+                // Call user-service to create profile (async, non-blocking)
                 try {
                         String userServiceUrl = "http://user-service:8082/api/users";
                         java.util.Map<String, String> profileData = new java.util.HashMap<>();
@@ -39,8 +44,7 @@ public class AuthenticationService {
                         profileData.put("lastName", request.getLastName());
                         restTemplate.postForObject(userServiceUrl, profileData, Object.class);
                 } catch (Exception e) {
-                        // In production, we might want to handle this with a retry mechanism or a
-                        // transaction
+                        // Log but don't fail registration - user profile can be created later
                         System.err.println("Failed to create user profile: " + e.getMessage());
                 }
 

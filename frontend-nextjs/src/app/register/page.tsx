@@ -21,12 +21,20 @@ const Register = () => {
         setLoading(true);
         setError("");
         try {
+            console.log("Attempting registration with:", { firstName, lastName, email, password: "***" });
             const response = await authApi.signup({ firstName, lastName, email, password });
+            console.log("Registration response:", response);
+            
+            if (!response.token) {
+                throw new Error("No token received from server");
+            }
+            
             localStorage.setItem("token", response.token);
             localStorage.setItem("userEmail", email);
             router.push("/catalog");
         } catch (err: any) {
-            setError(err.message || "Registration failed");
+            console.error("Registration error:", err);
+            setError(err.message || "Registration failed. Email might already be in use.");
         } finally {
             setLoading(false);
         }

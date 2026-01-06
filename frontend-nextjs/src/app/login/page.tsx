@@ -19,11 +19,20 @@ const Login = () => {
         setLoading(true);
         setError("");
         try {
+            console.log("Attempting login with:", { email, password: "***" });
             const response = await authApi.login({ email, password });
+            console.log("Login response:", response);
+            
+            if (!response.token) {
+                throw new Error("No token received from server");
+            }
+            
             localStorage.setItem("token", response.token);
+            localStorage.setItem("userEmail", email);
             router.push("/catalog");
         } catch (err: any) {
-            setError(err.message || "Invalid credentials");
+            console.error("Login error:", err);
+            setError(err.message || "Invalid credentials. Please check your email and password.");
         } finally {
             setLoading(false);
         }
