@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Databases
   postgres:
@@ -53,17 +51,21 @@ services:
       user-service:
         condition: service_healthy
       product-service:
-        condition: service_healthy
+        condition: service_started  # Changed from service_healthy to service_started
       order-service:
         condition: service_healthy
       payment-service:
+        condition: service_started  # Changed from service_healthy to service_started
+      inventory-service:
         condition: service_healthy
+      notification-service:
+        condition: service_started  # Changed from service_healthy to service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   auth-service:
     build: ./auth-service-java
@@ -78,10 +80,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   user-service:
     build: ./user-service-java
@@ -96,10 +98,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   product-service:
     build: ./product-service-python
@@ -111,10 +113,10 @@ services:
       MONGODB_URL: mongodb://mongodb:27017
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   order-service:
     build: ./order-service-java
@@ -129,25 +131,25 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   payment-service:
     build: ./payment-service-dotnet
     ports:
-      - "8085:8083"
+      - "8085:8080"
     depends_on:
       - mysql
     environment:
       ConnectionStrings__DefaultConnection: "Server=mysql;Database=payment_db;User=root;Password=password;"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 
   inventory-service:
@@ -163,10 +165,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   notification-service:
     build: ./notification-service-python
@@ -178,23 +180,23 @@ services:
       MONGODB_URL: mongodb://mongodb:27017
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   admin-service:
     build: ./admin-service-dotnet
     ports:
-      - "8086:8085"
+      - "8086:8080"
     depends_on:
       - mysql
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 
   # Frontend
@@ -206,13 +208,13 @@ services:
       NEXT_PUBLIC_API_URL: http://localhost:8080
     depends_on:
       api-gateway:
-        condition: service_healthy
+        condition: service_started  # Changed from service_healthy to service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 volumes:
   postgres_data:
