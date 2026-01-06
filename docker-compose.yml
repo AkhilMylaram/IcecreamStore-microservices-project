@@ -82,7 +82,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-      start_period: 60s
 
   user-service:
     build: ./user-service-java
@@ -101,7 +100,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-      start_period: 60s
 
   product-service:
     build: ./product-service-python
@@ -150,7 +148,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-      start_period: 30s
+
 
   inventory-service:
     build: ./inventory-service-java
@@ -197,7 +195,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-      start_period: 30s
+
 
   # Frontend
   frontend:
