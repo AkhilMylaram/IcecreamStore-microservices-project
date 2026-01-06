@@ -77,7 +77,7 @@ This document summarizes all changes made to fix the authentication system and p
 16. **`notification-service-python/app/main.py`**
     - Added FastAPI CORS middleware
 
-### Docker Configuration (3 files)
+### Docker Configuration & Build Fixes (expanded)
 17. **`docker-compose.yml`**
     - Fixed port mappings (order-service: 8086→8083, payment-service: 8083→8084)
     - Added health checks to all services
@@ -95,6 +95,26 @@ This document summarizes all changes made to fix the authentication system and p
 
 21. **`inventory-service-java/pom.xml`**
     - Added Spring Boot Actuator dependency
+
+22. **`admin-service-dotnet/Dockerfile`** (NEW)
+    - Fixed `dotnet restore` failure by explicitly pinning `MySqlConnector` to `2.3.5` and upgrading `Npgsql` to `7.0.5` during the build stage.
+    - This avoids the NU1605 package-downgrade error and addresses a known `Npgsql` vulnerability reported for older versions.
+
+---
+
+## ✨ NEW SERVICES & FEATURES (recent additions)
+- **`cart-service-python`** (NEW) — Server-backed Cart service using FastAPI + Postgres; endpoints: `/api/cart` (GET/POST/DELETE/clear) with DB persistence.
+- **API Gateway (.NET)** — Added JWT validation middleware that calls `auth-service` `/api/auth/me`, injects `X-User-*` headers, and enforces authentication for non-GET `/api/*` routes.
+- **`admin-service-dotnet/Controllers/AdminController.cs`** — Added admin endpoints that query databases (Postgres/MySQL) for stats, orders, and payments.
+- **Comprehensive tests** — `comprehensive-test.js` extended to verify cart persistence and admin DB reads/writes.
+
+---
+
+### Documentation & Testing (updated)
+22. **`vscode_test_app.txt`** - Complete documentation
+23. **`DOCKER_SETUP_COMPLETE.md`** - Docker setup guide
+24. **`verify-docker-setup.js`** - Verification script
+25. **`comprehensive-test.js`** - Test suite
 
 ### Documentation & Testing (4 new files)
 22. **`vscode_test_app.txt`** - Complete documentation

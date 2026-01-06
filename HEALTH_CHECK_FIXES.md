@@ -32,6 +32,11 @@
 - **Status:** ✅ FIXED
 - **Solution:** Added `start_period` to all health checks
 
+### 6. **Admin Service Build / Restore Failure**
+- **Issue:** `dotnet restore` failed during the Admin Docker image build with a NU1605 package-downgrade error involving `MySqlConnector`.
+- **Status:** ✅ FIXED
+- **Solution:** Updated `admin-service-dotnet/Dockerfile` to pin `MySqlConnector` to `2.3.5` and explicitly upgrade `Npgsql` to `7.0.5` during the build stage so `dotnet restore` completes successfully. This is documented in the Dockerfile and CHANGES_SUMMARY.
+
 ---
 
 ## 🔧 CHANGES MADE

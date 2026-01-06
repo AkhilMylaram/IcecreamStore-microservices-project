@@ -62,6 +62,19 @@ The application follows a **Decoupled Microservices Architecture**:
     - **API Gateway**: `http://localhost:8080`
     - **Admin Dashboard**: `http://localhost:3000/admin`
 
+### Troubleshooting
+- If `docker-compose up --build` fails during the `admin-service` image build with an error like:
+  ```text
+  /src/AdminService.csproj : error NU1605: Detected package downgrade: MySqlConnector from 2.3.5 to 2.0.0
+  ```
+  the Dockerfile has been updated to pin `MySqlConnector` to `2.3.5` and upgrade `Npgsql` to `7.0.5` during the build stage to resolve the issue. You can re-run the build after pulling the latest changes.
+
+- General troubleshooting tips:
+  ```bash
+  docker-compose logs -f [service-name]
+  docker-compose down && docker-compose up -d --build
+  ```
+
 ## 🖼️ AI-Generated Images
 
 Product images are generated using professional food photography prompts:
