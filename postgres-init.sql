@@ -1,6 +1,7 @@
 CREATE DATABASE icecream_db;
 CREATE DATABASE user_db;
 CREATE DATABASE order_db;
+CREATE DATABASE cart_db;
 
 \c icecream_db;
 CREATE SCHEMA auth_schema;
@@ -10,3 +11,6 @@ CREATE SCHEMA user_schema;
 
 \c order_db;
 CREATE SCHEMA order_schema;
+
+\c cart_db;
+CREATE SCHEMA cart_schema;

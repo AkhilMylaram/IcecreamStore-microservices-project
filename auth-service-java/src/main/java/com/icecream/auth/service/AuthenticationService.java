@@ -34,6 +34,7 @@ public class AuthenticationService {
                                 .role(Role.USER)
                                 .build();
                 repository.save(user);
+                System.out.println("[auth-service] Registered user: " + request.getEmail());
 
                 // Call user-service to create profile (async, non-blocking)
                 try {
@@ -49,6 +50,7 @@ public class AuthenticationService {
                 }
 
                 var jwtToken = jwtService.generateToken(user);
+                System.out.println("[auth-service] Generated JWT for user: " + request.getEmail());
                 return AuthResponse.builder()
                                 .token(jwtToken)
                                 .build();
@@ -76,5 +78,20 @@ public class AuthenticationService {
                         }
                     }
                 return false;
+        }
+
+        public java.util.Map<String, Object> getUserFromToken(String token) {
+                final String userEmail = jwtService.extractUsername(token);
+                if (userEmail != null) {
+                        var user = repository.findByEmail(userEmail).orElse(null);
+                        if (user != null) {
+                                java.util.Map<String, Object> info = new java.util.HashMap<>();
+                                info.put("id", user.getId());
+                                info.put("email", user.getEmail());
+                                info.put("role", user.getRole() != null ? user.getRole().name() : null);
+                                return info;
+                        }
+                }
+                return null;
         }
 }

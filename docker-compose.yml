@@ -136,6 +136,22 @@ services:
       retries: 3
       start_period: 60s
 
+  cart-service:
+    build: ./cart-service-python
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/cart_db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   payment-service:
     build: ./payment-service-dotnet
     ports:
@@ -191,6 +207,11 @@ services:
       - "8086:8080"
     depends_on:
       - mysql
+      - postgres
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=icecream_db;Username=postgres;Password=password"
+      ConnectionStrings__OrderPostgres: "Host=postgres;Port=5432;Database=order_db;Username=postgres;Password=password"
+      ConnectionStrings__MySql: "Server=mysql;Database=payment_db;User=root;Password=password"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s

@@ -19,6 +19,14 @@ public class UserProfileController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserProfile> getMyProfile(@RequestHeader(value = "X-User-Email", required = false) String email) {
+        if (email == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return getProfile(email);
+    }
+
     @PostMapping
     public ResponseEntity<UserProfile> updateProfile(@RequestBody UserProfile profile) {
         return ResponseEntity.ok(service.saveProfile(profile));

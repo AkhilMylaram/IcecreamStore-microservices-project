@@ -9,81 +9,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { productApi } from "@/lib/api";
 import { useCartStore } from "@/store/useCartStore";
 
-const MOCK_PRODUCTS = [
-    {
-        id: 1,
-        name: "Strawberry Bliss",
-        category: "Fruit",
-        price: 4.99,
-        rating: 4.8,
-        image: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?q=80&w=1000&auto=format&fit=crop",
-        desc: "Creamy strawberry goodness with real chunks."
-    },
-    {
-        id: 2,
-        name: "Chocolate Heaven",
-        category: "Chocolate",
-        price: 5.50,
-        rating: 4.9,
-        image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000&auto=format&fit=crop",
-        desc: "Triple layer chocolate indulgence."
-    },
-    {
-        id: 3,
-        name: "Mango Tango",
-        category: "Fruit",
-        price: 4.75,
-        rating: 4.7,
-        image: "https://images.unsplash.com/photo-1528577910701-b2da2f449884?q=80&w=1000&auto=format&fit=crop",
-        desc: "Exotic Alfonso mangoes for a tropical kick."
-    },
-    {
-        id: 4,
-        name: "Vanilla Velvet",
-        category: "Classic",
-        price: 4.25,
-        rating: 4.6,
-        image: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?q=80&w=1000&auto=format&fit=crop",
-        desc: "Classic Madagascar vanilla beans."
-    },
-    {
-        id: 5,
-        name: "Pistachio Dream",
-        category: "Nuts",
-        price: 5.99,
-        rating: 4.9,
-        image: "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?q=80&w=1000&auto=format&fit=crop",
-        desc: "Roasted pistachios blended into perfection."
-    },
-    {
-        id: 6,
-        name: "Caramel Swirl",
-        category: "Classic",
-        price: 5.25,
-        rating: 4.7,
-        image: "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?q=80&w=1000&auto=format&fit=crop",
-        desc: "Salted caramel ribbons in every bite."
-    }
-];
+
 
 const CATEGORIES = ["All", "Classic", "Fruit", "Chocolate", "Nuts"];
 
 const Catalog = () => {
-    const [products, setProducts] = useState(MOCK_PRODUCTS);
+    const [products, setProducts] = useState<any[]>([]);
     const [activeCategory, setActiveCategory] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const addItem = useCartStore((state) => state.addItem);
 
-    React.useEffect(() => {
+n    React.useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const data = await productApi.getProducts();
-                if (data && data.length > 0) {
-                    setProducts(data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch products, using mocks:", error);
+                setProducts(Array.isArray(data) ? data : []);
+            } catch (err: any) {
+                console.error("Failed to fetch products:", err);
+                setError(err.message || 'Failed to load products');
             } finally {
                 setLoading(false);
             }
@@ -142,18 +87,27 @@ const Catalog = () => {
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        <AnimatePresence mode="popLayout">
-                            {filteredProducts.map((product) => (
-                                <motion.div
-                                    layout
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ duration: 0.3 }}
-                                    key={product.id}
-                                    className="group bg-white dark:bg-card rounded-[2.5rem] p-4 shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-primary/10"
-                                >
+                    {loading ? (
+                        <div className="py-20 text-center w-full">
+                            <p className="text-2xl font-bold">Loading products...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="py-20 text-center w-full">
+                            <p className="text-2xl font-bold text-red-500">Failed to load products: {error}</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            <AnimatePresence mode="popLayout">
+                                {filteredProducts.map((product) => (
+                                    <motion.div
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ duration: 0.3 }}
+                                        key={product.id || product._id}
+                                        className="group bg-white dark:bg-card rounded-[2.5rem] p-4 shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-primary/10"
+                                    >
                                     <div className="aspect-square relative rounded-[2rem] overflow-hidden mb-6 bg-primary/5">
                                         <Image
                                             src={product.image || "https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000&auto=format&fit=crop"}

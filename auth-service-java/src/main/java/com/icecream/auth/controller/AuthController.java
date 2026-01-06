@@ -40,6 +40,23 @@ public class AuthController {
         return ResponseEntity.ok(service.validateToken(jwt));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<?> me(HttpServletRequest request) {
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).build();
+        }
+        final String jwt = authHeader.substring(7);
+        if (!service.validateToken(jwt)) {
+            return ResponseEntity.status(401).build();
+        }
+        var info = service.getUserFromToken(jwt);
+        if (info == null) {
+            return ResponseEntity.status(404).build();
+        }
+        return ResponseEntity.ok(info);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         // Since we are using stateless JWT, we can't truly "logout" on server side

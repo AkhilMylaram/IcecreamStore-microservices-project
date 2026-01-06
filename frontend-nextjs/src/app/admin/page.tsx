@@ -6,14 +6,34 @@ import { LayoutDashboard, Package, ShoppingCart, Users, TrendingUp, DollarSign }
 import { cn } from "@/lib/utils";
 
 const AdminDashboard = () => {
-    const stats = [
-        { label: "Total Revenue", value: "$12,450", icon: DollarSign, color: "bg-green-500", trend: "+12.5%" },
-        { label: "Total Orders", value: "1,240", icon: ShoppingCart, color: "bg-blue-500", trend: "+8.2%" },
-        { label: "Active Users", value: "850", icon: Users, color: "bg-purple-500", trend: "+5.1%" },
-        { label: "Inventory Items", value: "45", icon: Package, color: "bg-orange-500", trend: "Stable" },
-    ];
+    const [stats, setStats] = React.useState<any>({ users: 0, orders: 0, payments: 0 });
+    const [orders, setOrders] = React.useState<any[]>([]);
+    const [inventory, setInventory] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
 
-    return (
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [statsResp, ordersResp] = await Promise.all([
+                    fetch('/api/admin/stats').then(r => r.json()),
+                    fetch('/api/admin/orders').then(r => r.json())
+                ]);
+                setStats(statsResp || { users: 0, orders: 0, payments: 0 });
+                setOrders(ordersResp || []);
+                // inventory can be fetched from product service directly for now
+                const prod = await fetch('/api/products').then(r => r.json()).catch(() => []);
+                const alerts = (prod || []).filter((p: any) => p.inventory_count && p.inventory_count < 20).slice(0, 4).map((p: any) => ({ name: p.name, stock: p.inventory_count, status: p.inventory_count < 6 ? 'Critical' : 'Low' }));
+                setInventory(alerts);
+            } catch (e) {
+                console.error('Failed to load admin data', e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+n    return (
         <main className="min-h-screen bg-muted/30">
             <Navbar />
 
@@ -31,16 +51,19 @@ const AdminDashboard = () => {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {stats.map((stat, i) => (
+                    {[
+                        { label: 'Users', value: stats.users, icon: Users, color: 'bg-purple-500' },
+                        { label: 'Orders', value: stats.orders, icon: ShoppingCart, color: 'bg-blue-500' },
+                        { label: 'Payments', value: stats.payments, icon: DollarSign, color: 'bg-green-500' },
+                        { label: 'Inventory Items', value: inventory.length, icon: Package, color: 'bg-orange-500' },
+                    ].map((stat, i) => (
                         <div key={i} className="bg-white dark:bg-card p-8 rounded-[2rem] shadow-sm border border-transparent">
                             <div className="flex justify-between items-start mb-6">
                                 <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white", stat.color)}>
                                     <stat.icon className="w-6 h-6" />
                                 </div>
-                                <span className={cn("text-xs font-bold px-2 py-1 rounded-full",
-                                    stat.trend.startsWith("+") ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"
-                                )}>
-                                    {stat.trend}
+                                <span className={cn("text-xs font-bold px-2 py-1 rounded-full bg-muted text-muted-foreground")}>
+                                    &nbsp;
                                 </span>
                             </div>
                             <p className="text-muted-foreground text-sm font-medium mb-1">{stat.label}</p>
@@ -49,55 +72,60 @@ const AdminDashboard = () => {
                     ))}
                 </div>
 
-                {/* Tables / Recent Activity Placeholder */}
+                {/* Tables / Recent Activity */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="bg-white dark:bg-card rounded-[2rem] p-8 shadow-sm">
                         <h3 className="text-xl font-bold mb-6">Recent Orders</h3>
                         <div className="space-y-6">
-                            {[1, 2, 3, 4].map((_, i) => (
-                                <div key={i} className="flex items-center justify-between pb-6 border-b last:border-0 last:pb-0">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center font-bold text-primary">#ORD</div>
-                                        <div>
-                                            <p className="font-bold">Order #123456</p>
-                                            <p className="text-sm text-muted-foreground">2 mins ago • 3 Items</p>
+                            {loading ? (
+                                <p>Loading...</p>
+                            ) : orders.length === 0 ? (
+                                <p>No recent orders</p>
+                            ) : (
+                                orders.map((o: any, i: number) => (
+                                    <div key={i} className="flex items-center justify-between pb-6 border-b last:border-0 last:pb-0">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center font-bold text-primary">#ORD</div>
+                                            <div>
+                                                <p className="font-bold">Order #{o.id}</p>
+                                                <p className="text-sm text-muted-foreground">{new Date(o.createdat ?? o.createdAt).toLocaleString()} • {/* TODO: items count */} </p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold">${(o.totalamount || o.totalAmount || 0).toFixed(2)}</p>
+                                            <p className="text-[10px] text-green-500 font-bold uppercase tracking-wider">{(o.status || '').toUpperCase()}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="font-bold">$45.00</p>
-                                        <p className="text-[10px] text-green-500 font-bold uppercase tracking-wider">Paid</p>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
 
                     <div className="bg-white dark:bg-card rounded-[2rem] p-8 shadow-sm">
                         <h3 className="text-xl font-bold mb-6">Inventory Alerts</h3>
                         <div className="space-y-6">
-                            {[
-                                { name: "Strawberry Bliss", stock: 12, status: "Low" },
-                                { name: "Vanilla Velvet", stock: 5, status: "Critical" },
-                                { name: "Choco Chip", stock: 15, status: "Low" },
-                                { name: "Mango Tango", stock: 8, status: "Low" }
-                            ].map((item, i) => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center">
-                                            <Package className="w-6 h-6 text-primary" />
+                            {inventory.length === 0 ? (
+                                <p>No inventory alerts</p>
+                            ) : (
+                                inventory.map((item, i) => (
+                                    <div key={i} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center">
+                                                <Package className="w-6 h-6 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold">{item.name}</p>
+                                                <p className="text-sm text-muted-foreground">{item.stock} boxes remaining</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-bold">{item.name}</p>
-                                            <p className="text-sm text-muted-foreground">{item.stock} boxes remaining</p>
-                                        </div>
+                                        <span className={cn("px-4 py-2 rounded-xl text-xs font-bold",
+                                            item.status === "Critical" ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"
+                                        )}>
+                                            {item.status}
+                                        </span>
                                     </div>
-                                    <span className={cn("px-4 py-2 rounded-xl text-xs font-bold",
-                                        item.status === "Critical" ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"
-                                    )}>
-                                        {item.status}
-                                    </span>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

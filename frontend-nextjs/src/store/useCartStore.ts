@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { cartApi } from '@/lib/api';
 
 export interface CartItem {
     id: string | number;
@@ -11,54 +11,56 @@ export interface CartItem {
 
 interface CartStore {
     items: CartItem[];
-    addItem: (product: any) => void;
-    removeItem: (id: string | number) => void;
-    updateQuantity: (id: string | number, delta: number) => void;
-    clearCart: () => void;
+    setItems: (items: CartItem[]) => void;
+    refreshFromServer: () => Promise<void>;
+    addItem: (product: any) => Promise<void>;
+    removeItem: (id: string | number) => Promise<void>;
+    updateQuantity: (id: string | number, delta: number) => Promise<void>;
+    clearCart: () => Promise<void>;
 }
 
-export const useCartStore = create<CartStore>()(
-    persist(
-        (set) => ({
-            items: [],
-            addItem: (product) => set((state) => {
-                const existingItem = state.items.find((item) => item.id === (product.id || product._id));
-                if (existingItem) {
-                    return {
-                        items: state.items.map((item) =>
-                            item.id === (product.id || product._id)
-                                ? { ...item, quantity: item.quantity + 1 }
-                                : item
-                        ),
-                    };
-                }
-                return {
-                    items: [
-                        ...state.items,
-                        {
-                            id: product.id || product._id,
-                            name: product.name,
-                            price: product.price,
-                            quantity: 1,
-                            image: product.image || product.image_url,
-                        },
-                    ],
-                };
-            }),
-            removeItem: (id) => set((state) => ({
-                items: state.items.filter((item) => item.id !== id),
-            })),
-            updateQuantity: (id, delta) => set((state) => ({
-                items: state.items.map((item) =>
-                    item.id === id
-                        ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-                        : item
-                ),
-            })),
-            clearCart: () => set({ items: [] }),
-        }),
-        {
-            name: 'icecream-cart',
+export const useCartStore = create<CartStore>()((set, get) => ({
+    items: [],
+    setItems: (items) => set({ items }),
+    refreshFromServer: async () => {
+        try {
+            const data = await cartApi.getCart();
+            set({ items: (data || []).map((i: any) => ({ id: i.product_id, name: i.name, price: Number(i.price), quantity: i.quantity, image: i.image })) });
+        } catch (e) {
+            console.error('Failed to refresh cart from server', e);
         }
-    )
-);
+    },
+    addItem: async (product) => {
+        try {
+            await cartApi.addItem({ product_id: product.id || product._id, name: product.name, price: product.price, image: product.image || product.image_url, quantity: 1 });
+            await get().refreshFromServer();
+        } catch (e) {
+            console.error('Failed to add item to server cart', e);
+        }
+    },
+    removeItem: async (id) => {
+        try {
+            await cartApi.removeItem(id.toString());
+            await get().refreshFromServer();
+        } catch (e) {
+            console.error('Failed to remove item from server cart', e);
+        }
+    },
+    updateQuantity: async (id, delta) => {
+        try {
+            // Simple approach: remove and re-add or call backend if supported; we'll re-sync after modification by adding a new record with delta quantity
+            await cartApi.addItem({ product_id: id.toString(), name: '', price: 0, image: '', quantity: delta });
+            await get().refreshFromServer();
+        } catch (e) {
+            console.error('Failed to update quantity', e);
+        }
+    },
+    clearCart: async () => {
+        try {
+            await cartApi.clearCart();
+            set({ items: [] });
+        } catch (e) {
+            console.error('Failed to clear cart', e);
+        }
+    },
+}));

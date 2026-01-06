@@ -10,7 +10,11 @@ import { useRouter } from "next/navigation";
 
 const Checkout = () => {
     const router = useRouter();
-    const { items, clearCart } = useCartStore();
+    const { items, clearCart, refreshFromServer } = useCartStore();
+
+    React.useEffect(() => {
+        refreshFromServer();
+    }, [refreshFromServer]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [form, setForm] = useState({
@@ -45,7 +49,9 @@ const Checkout = () => {
         setError("");
 
         try {
-            const userEmail = localStorage.getItem("userEmail") || "guest@example.com";
+            // Fetch current authenticated user email from auth service (via gateway)
+            const me = await import("@/lib/api").then(({ authApi }) => authApi.me().catch(() => null));
+            const userEmail = (me && me.email) ? me.email : (localStorage.getItem("userEmail") || "guest@example.com");
 
             // 1. Process Payment
             await paymentApi.processPayment({
@@ -69,7 +75,7 @@ const Checkout = () => {
             });
 
             // 3. Success
-            clearCart();
+            await clearCart();
             router.push("/orders?success=true");
         } catch (err: any) {
             console.error("Checkout failed:", err);

@@ -13,9 +13,29 @@ const Navbar = () => {
     const items = useCartStore((state) => state.items);
     const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
     const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+    const [userInitial, setUserInitial] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        setIsLoggedIn(!!localStorage.getItem("token"));
+        const token = localStorage.getItem("token");
+        setIsLoggedIn(!!token);
+        if (token) {
+            // Fetch minimal user info to display initial (via API Gateway -> Auth Service)
+            import("@/lib/api").then(async ({ authApi }) => {
+                try {
+                    const data: any = await authApi.me();
+                    if (data && data.email) {
+                        setUserInitial((data.email as string)[0].toUpperCase());
+                    }
+                    // Refresh cart from server when user is authenticated
+                    const cartStore = (await import("@/store/useCartStore")).useCartStore;
+                    if (cartStore && cartStore.getState) {
+                        await cartStore.getState().refreshFromServer();
+                    }
+                } catch (e) {
+                    // silent fail
+                }
+            });
+        }
     }, []);
 
     const navItems = [
@@ -69,8 +89,7 @@ const Navbar = () => {
                         {isLoggedIn ? (
                             <Link href="/profile">
                                 <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold">
-                                    {/* Mock user initial */}
-                                    U
+                                    {userInitial || 'U'}
                                 </div>
                             </Link>
                         ) : (

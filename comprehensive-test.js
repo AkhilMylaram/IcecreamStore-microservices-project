@@ -31,7 +31,9 @@ class TestRunner {
         if (this.token) {
             await this.testUserProfile();
             await this.testProductService();
+            await this.testCartPersistence();
             await this.testOrderFlow();
+            await this.testAdminEndpoints();
         }
 
         // Phase 3: Summary
@@ -248,6 +250,80 @@ class TestRunner {
             }
         } catch (error) {
             this.recordResult('❌ Product Service', false, error.message);
+            console.log('   ✗ Exception:', error.message);
+        }
+    }
+
+    async testCartPersistence() {
+        console.log('\n🛒 TEST 8b: Cart Persistence');
+        console.log('-'.repeat(40));
+
+        if (!this.token) {
+            this.recordResult('❌ Cart Persistence', false, 'No token available');
+            return;
+        }
+
+        try {
+            // Add an item to the cart
+            const addResp = await fetch(`${API_URL}/api/cart`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ product_id: 'test-prod-1', name: 'Test Product', price: 3.5, quantity: 2 })
+            });
+
+            if (!addResp.ok) {
+                this.recordResult('❌ Cart Persistence', false, `Failed to add item (HTTP ${addResp.status})`);
+                return;
+            }
+
+            // Retrieve cart
+            const getResp = await fetch(`${API_URL}/api/cart`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (getResp.ok) {
+                const items = await getResp.json();
+                const found = Array.isArray(items) && items.some(i => i.product_id === 'test-prod-1');
+                if (found) {
+                    this.recordResult('✅ Cart Persistence', true, 'Cart item persisted and retrieved successfully');
+                } else {
+                    this.recordResult('❌ Cart Persistence', false, 'Item not found in persisted cart');
+                }
+            } else {
+                this.recordResult('❌ Cart Persistence', false, `Failed to retrieve cart (HTTP ${getResp.status})`);
+            }
+        } catch (error) {
+            this.recordResult('❌ Cart Persistence', false, error.message);
+            console.log('   ✗ Exception:', error.message);
+        }
+    }
+
+    async testAdminEndpoints() {
+        console.log('\n🛠️ TEST 8c: Admin Endpoints');
+        console.log('-'.repeat(40));
+
+        try {
+            const response = await fetch(`${API_URL}/api/admin/stats`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                const stats = await response.json();
+                this.recordResult('✅ Admin Stats', true, `Stats retrieved: ${JSON.stringify(stats)}`);
+                console.log('   ✓ Admin stats:', stats);
+            } else {
+                this.recordResult('❌ Admin Stats', false, `Failed to fetch admin stats (HTTP ${response.status})`);
+            }
+        } catch (error) {
+            this.recordResult('❌ Admin Stats', false, error.message);
             console.log('   ✗ Exception:', error.message);
         }
     }
