@@ -98,6 +98,7 @@ This document summarizes all changes made to fix the authentication system and p
 
 22. **`admin-service-dotnet/Dockerfile`** (NEW)
     - Fixed `dotnet restore` failure by explicitly pinning `MySqlConnector` to `2.3.5` and upgrading `Npgsql` to `7.0.5` during the build stage.
+    - Also updated `admin-service-dotnet/AdminService.csproj` to explicitly reference `MySqlConnector` 2.3.5 and `Npgsql` 7.0.5 so the dependency versions are committed to source and survive Docker builds.
     - This avoids the NU1605 package-downgrade error and addresses a known `Npgsql` vulnerability reported for older versions.
 
 ---
